@@ -15,16 +15,16 @@ const requestLogger = (req, response, next) => {
 }
 
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({error: 'unknown endpoint'})
+  res.status(404).send({ error: 'unknown endpoint' })
 }
 
 const errorHandler = (error, req, res, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
-    return res.status(400).send({ error: 'malformatted id'})
+    return res.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-    return res.status(400).json({ error: error.message})
+    return res.status(400).json({ error: error.message })
   }
 
   next(error)
@@ -33,11 +33,11 @@ const errorHandler = (error, req, res, next) => {
 
 app.use(express.json())
 app.use(express.static('build'))
-app.use(cors()) 
+app.use(cors())
 app.use(requestLogger)
 app.use(bodyParser.json())
 
-morgan.token('req-body', (req, res) => JSON.stringify(req.body))
+morgan.token('req-body', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'))
 app.use(express.static('dist'))
 
@@ -56,12 +56,12 @@ app.get('/info', (req, res, next) => {
         second: '2-digit',
         timeZoneName: 'short'
       }
-      const currentDate = new Date().toLocaleDateString('fi-FI', options);
+      const currentDate = new Date().toLocaleDateString('fi-FI', options)
       const message = `
         <p>Phonebook has info for ${persons.length} people</p> 
         <p>${currentDate}</p>
         `
-      res.send(message)    
+      res.send(message)
     })
     .catch(e => next(e))
 
@@ -84,22 +84,22 @@ app.get('/api/persons/:id/', (req, res) => {
       if(person) {
         res.json(person)
       } else {
-        response.status(404).end()
-      }  
+        res.status(404).end()
+      }
     })
     .catch(error => {
       console.log(error)
-      response.status(400).send({ error: 'malformatted id' })
+      res.status(400).send({ error: 'malformatted id' })
     })
 })
 
 app.put('/api/persons/:id/', (req, res, next) => {
-  const {name, number} = req.body
+  const { name, number } = req.body
 
   Person.findByIdAndUpdate(
-    req.params.id, 
-    { name, number }, 
-    { new: true, runValidators: true, context: 'query'})
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       res.json(updatedPerson)
     })
@@ -107,7 +107,6 @@ app.put('/api/persons/:id/', (req, res, next) => {
 })
 
 app.post('/api/persons/', (req, res, next) => {
-  
   const body = req.body
   console.log(body)
   if (body.name === undefined || body.number === undefined) {
@@ -126,9 +125,8 @@ app.post('/api/persons/', (req, res, next) => {
 
 app.delete('/api/persons/:id/', (req, res, next) => {
 
-  const id = Number(req.params.id)
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => next(error))
